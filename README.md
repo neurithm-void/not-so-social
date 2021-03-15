@@ -1,2 +1,2 @@
-# social-media-automation
+# social-success
 social media automation pipeline
