@@ -1,0 +1,26 @@
+{
+  "name": "not-so-social",
+  "version": "0.1.0",
+  "description": "social media automation pipeline",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neurithm-void/social-success.git"
+  },
+  "keywords": [
+    "automation"
+  ],
+  "author": "neurithm.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neurithm-void/social-success/issues"
+  },
+  "homepage": "https://github.com/neurithm-void/social-success#readme",
+  "devDependencies": {
+    "electron": "^12.0.1"
+  }
+}
