@@ -16,3 +16,38 @@ social media automation pipeline
     ```
     user: path\to\cloned-folder\not-so-social> npm start 
     ```
+
+
+<h3>Folder structure</h3>
+
+```
+|
+|--- config
+|        |--- index.js (config file)
+|
+|--- resources
+|        |--- css (all css files)
+|        |--- html (all html files)
+|        |--- icons (any icons)
+|
+|--- src
+|        |--- components (all ui related backend code)
+|        |--- utils (all utility code e.g. api calls)
+|
+|--- test (unit testing code)
+|        
+|--- app.js (entry point of app)
+|        
+|--- index.css (stylesheets for app.js)
+|        
+|--- index.html (html for app.js)
+|        
+|--- LICENSE
+|        
+|--- package-lock.json
+|        
+|--- package.json
+|        
+|--- README.md
+```
+
