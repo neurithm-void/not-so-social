@@ -8,7 +8,17 @@ social media automation pipeline
     ``` 
     user: path\to\cloned-folder\not-so-social> npm install 
     ```
-3. To start electron app you can either use it's default run command. 
+3. Before running the app, you need to set env variables. (this needs to be set everytime you start a new cmd)
+    ```
+    #on windows cmd
+    user: path\to\cloned-folder\not-so-social> set APP_ID=YOUR_APP_ID
+    user: path\to\cloned-folder\not-so-social>
+    user: path\to\cloned-folder\not-so-social> set HASH_SECRET=HASH_SECRET
+    user: path\to\cloned-folder\not-so-social>
+    user: path\to\cloned-folder\not-so-social> set LOCAL_STORE_PATH=PATH
+    user: path\to\cloned-folder\not-so-social> 
+    ```
+4. To start electron app you can either use it's default run command. 
     ```
     user: path\to\cloned-folder\not-so-social> electron . 
     ```

@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 
 <html>
-  
     <head>
         <meta charset="UTF-8">
         <title>Not So Social</title>
         <link rel="stylesheet" href="index.css">
     </head>
-  
+    
+
     <body>
-        <h1>Not So Social</h1>
+        <script>
+            window.api.receive("fromMain", (data) => {
+                console.log(data);
+                document.getElementById("user_name").innerHTML = " Hi, " + data.user_name
+                document.getElementById("profile_picture").src =  data.profile_picture_url
+            });
+            
+            window.api.send("toMain", "get_user_data"); //send data back to the main process
+        </script>
+        <img id = "profile_picture" width="80" height="80">
+
+        <div id="user_name">
+            Hi, 
+        </div>
     </body>
 
 </html>
