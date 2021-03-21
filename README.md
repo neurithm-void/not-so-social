@@ -35,6 +35,8 @@ social media automation pipeline
 |--- config
 |        |--- index.js (config file)
 |
+|--- data
+|
 |--- resources
 |        |--- css (all css files)
 |        |--- html (all html files)
@@ -43,6 +45,7 @@ social media automation pipeline
 |--- src
 |        |--- components (all ui related backend code)
 |        |--- utils (all utility code e.g. api calls)
+|        |--- connectors (connector to database)
 |
 |--- test (unit testing code)
 |        
@@ -57,6 +60,8 @@ social media automation pipeline
 |--- package-lock.json
 |        
 |--- package.json
+|        
+|--- preload.js (preload node script for app renderer)
 |        
 |--- README.md
 ```
