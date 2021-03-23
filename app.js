@@ -83,11 +83,23 @@ ipcMain.on("toMain", (event, args) => {
 
   let responseObj;
 
-  if(args === "get_user_data"){
+  if(args.task === "get_user_data"){
     responseObj = {
-      user_name : datastore.get("name"),
-      profile_picture_url : datastore.get("profile_photo_url")
+      task : "get_user_data",
+      data : {
+        user_name : datastore.get("name"),
+        profile_picture_url : datastore.get("profile_photo_url"),
+        pages : datastore.getCollection("page")
+      }
     }
+  }
+  else if (args.task === "get_page_data_by_idx"){
+      //TODO: return given page related information specified by id.
+      
+      responseObj = {
+        task : "get_page_data_by_idx",
+        data : datastore.getCollection("ig_info_by_page")[parseInt(args.id)]
+      }
   }
   
   //send result back to renderer

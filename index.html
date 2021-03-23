@@ -10,18 +10,67 @@
 
     <body>
         <script>
+
+            window.api.send("toMain", {task: "get_user_data"}); //send data back to the main process
+
             window.api.receive("fromMain", (data) => {
-                console.log(data);
-                document.getElementById("user_name").innerHTML = " Hi, " + data.user_name
-                document.getElementById("profile_picture").src =  data.profile_picture_url
+
+                if (data.task == "get_user_data"){
+                    setUserData(data.data);
+                }
+                else if (data.task == "get_page_data_by_idx"){
+                    console.log(data); //TODO: Add view for the data
+                }
+
             });
             
-            window.api.send("toMain", "get_user_data"); //send data back to the main process
+            
+            //function will set initial userdata
+            const setUserData = function(data){
+
+                document.getElementById("user_name").innerHTML = " Hi, " + data.user_name
+                document.getElementById("profile_picture").src =  data.profile_picture_url
+                
+                const container = document.getElementById('page-cards');
+
+                //create card for each element
+                data.pages.forEach((page, idx) => {
+                    // Create card element
+                    const card = document.createElement('div');
+                    card.classList = 'card-body';
+
+                    // Construct card content
+                    const content = `
+                        <div class="card" id = "${idx}" onClick="cardOnClick(this.id)">
+                        <div id="collapse-${idx}" class="collapse show" aria-labelledby="heading-${idx}" data-parent="#page-cards">
+                        <div class="card-body">
+                            <h5>${page.name}</h5>
+                            <p>${page.category}</p>
+                            <p>${page.tasks}</p>
+                        </div>
+                        </div>
+                    </div>
+                    `;
+
+                    // Append newyly created card element to the container
+                    container.innerHTML += content;
+                });
+            }
+
+            const cardOnClick = function(idx){
+                //Todo: Add api call for given page.
+                window.api.send("toMain", {task: "get_page_data_by_idx", id: idx}); //send data back to the main process
+            }
+
         </script>
         <img id = "profile_picture" width="80" height="80">
 
         <div id="user_name">
             Hi, 
+        </div>
+
+        <div id = "page-cards">
+
         </div>
     </body>
 

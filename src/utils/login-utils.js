@@ -4,7 +4,7 @@ const FB = require("fb");
 const config = require("../../config")();
 const {app, BrowserWindow, session} = require("electron");
 const LocalStore = require("../connectors/local-datastore");
-
+const {getIGAccountDetails} = require("./graph-api")
 
 // useful scopes
 // instagram_basic
@@ -14,11 +14,11 @@ const LocalStore = require("../connectors/local-datastore");
 
 const facebookAuth = (mainWindow, loadingWindow) =>{
     
-    const datastore = new LocalStore();
 
     let options = {
 		client_id: config.app_id,
-		scopes: 'email,instagram_basic,pages_show_list',
+		// scopes: 'email,instagram_basic,pages_show_list,instagram_content_publish',
+		scopes: ["email", "pages_show_list", "instagram_basic", "instagram_content_publish", "instagram_manage_comments", "instagram_manage_insights"].join(","), //join all the scopes
 		redirect_uri: 'https://www.facebook.com/connect/login_success.html'
 	};
 
@@ -53,21 +53,26 @@ const facebookAuth = (mainWindow, loadingWindow) =>{
 
 		if (access_token || error) {
 			closedByUser = false;
-			FB.setAccessToken(access_token);
-			FB.api('/me', 
-				{fields: ['id', 'name', 'picture.width(800).height(800)', "accounts"]},  
-				(res) => {
-					console.log(res.accounts)
-					
-					datastore.set("name", res.name);
-					datastore.set("user_id", res.id);
-					datastore.set("profile_photo_url", res.picture.data.url);
-					datastore.set("login_status", "in");
 
-					let today = new Date();
-					datastore.set("last_loggin", today.toDateString())
+			updateAccountInfoToDB(access_token)
+			//TODO: move into different file to fetch data regularly.
+			// FB.setAccessToken(access_token);
+			// FB.api('/me', 
+			// 	{fields: ['id', 'name', 'picture.width(800).height(800)', "accounts"]},  
+			// 	(res) => {					
+			// 		datastore.set("name", res.name);
+			// 		datastore.set("user_id", res.id);
+			// 		datastore.set("profile_photo_url", res.picture.data.url);
+			// 		datastore.set("login_status", "in");
+			// 		datastore.set("access_token", access_token);
 
-				});
+			// 		let today = new Date();
+			// 		datastore.set("last_loggin", today.toDateString())
+
+			// 		//process all 
+			// 		processAccountInfo(res.accounts)
+
+			// 	});
             mainWindow.show();
 		}
     }
@@ -89,6 +94,58 @@ const facebookAuth = (mainWindow, loadingWindow) =>{
 
 }
 
+
+const updateAccountInfoToDB = (access_token)=>{
+
+    const datastore = new LocalStore();
+
+	FB.setAccessToken(access_token);
+	FB.api('/me', 
+		{fields: ['id', 'name', 'picture.width(800).height(800)', "accounts"]},  
+		(res) => {					
+			datastore.set("name", res.name);
+			datastore.set("user_id", res.id);
+			datastore.set("profile_photo_url", res.picture.data.url);
+			datastore.set("login_status", "in");
+			datastore.set("access_token", access_token);
+
+			let today = new Date();
+			datastore.set("last_loggin", today.toDateString())
+
+			//process all 
+			processAccountInfo(res.accounts, datastore, FB)
+		});
+}
+
+
+//process all info regarding linked pages.
+const processAccountInfo = (accounts, datastore, FB)=>{
+
+	//dumping all data related
+	accounts.data.forEach((page, idx) => {
+		datastore.setCollection("page", {
+			category : page.category,
+			name : page.name,
+			id : page.id,
+			tasks : page.tasks
+		})
+
+		getInstgramUserID(page.id, datastore, FB, idx);
+	});
+	
+}
+
+
+const getInstgramUserID = (id, datastore, FB, idx) =>{
+	
+	FB.api(`/${id}`,
+			{fields: ["instagram_business_account"]},
+			(res) =>{
+				let IG_ID = res.instagram_business_account.id;
+				datastore.addToObject("fb_to_ig_mapping", idx, IG_ID)
+				getIGAccountDetails(IG_ID, idx, FB, datastore)
+			})
+}
 
 
 module.exports = facebookAuth;
