@@ -2,127 +2,141 @@
 
 
 const fs = require('fs');
-const config = require("../../config")();
 const {Encryption} = require("../utils/utils")
 
 
-
-class LocalStore {
-  constructor() {
+class LocalStore{
     
-    this.encryption = new Encryption();
-    this.path = config.local_store_path;
-    this.data = parseDataFile(this.path, config.default_data);
+    constructor(data_path){
+        this.encryption = new Encryption();
+        this.path = data_path;
+        this.data = parseDataFile(this.path);
 
-    this.encryptionExcludeKeys = ["login_status", "profile_photo_url", "tasks", "pages", "followers_count", "follows_count", "page_id"]
-  }
-  
-  // This will just return the property on the `data` object
-  get(key) {
-    return this.encryptionExcludeKeys.includes(key) ? this.data[key] : this.encryption.decrypt(this.data[key]); 
-  }
-  
-  //add data to local datastore with key and value
-  set(key, val) {
-    this.data[key] = this.encryptionExcludeKeys.includes(key) ? val : this.encryption.encrypt(val);
-    fs.writeFileSync(this.path, JSON.stringify(this.data));
-  }
-
-
-  //This will return an Object from the database.
-  getCollection(key){
-    let cacheObject = this.data[key];
-
-    //check if it is an array,
-    if(Array.isArray(cacheObject)){
-        let cacheArray = [];
-
-        cacheObject.forEach(obj => {
-          Object.keys(obj).forEach(obKey => obj[obKey] = this.encryptionExcludeKeys.includes(obKey) ? obj[obKey] : this.encryption.decrypt(obj[obKey]));
-          cacheArray.push(obj);
-        })
-
-        return cacheArray;
+        this.encryptedKeys = ["user_id", "access_token", "id", "name", "username", "email"]  //update list as more secret keys need to be encrypted
     }
-    // else if (typeof cacheObject === 'object'){  //check if it an object
+    
+    //get value of the key which can be anything, e.g. string, array, dictionary
+    //will only work with first order keys.
+    get(key){
 
-    //   Object.keys(cacheObject).forEach(obKey => cacheObject[obKey] = this.encryptionExcludeKeys.includes(obKey) ? cacheObject[obKey] : this.encryption.decrypt(cacheObject[obKey]));
-    //   return cacheObject;
-    // }
-    else{
-      //assume it as a single value
-      return this.encryptionExcludeKeys.includes(key) ? cacheObject : this.encryption.decrypt(cacheObject); 
-    }
-  }
+        let value = this.data[key];
 
+        if(typeof value == "object" && Array.isArray(value)){
+            // TODO: add support for list of list if needed
+            value.map((val)=>{
+                return typeof val == "object" ? this.decryptObject(val) : val;
+            })
 
-  //This will dump an Object to database.
-  setCollection(key, val){
-
-    //check if the val is an Object, else store it using set. 
-    if (typeof val !== 'object'){
-      this.set(key, val);
-    }
-    else{
-      //encrypting vals of required keys. 
-      // TODO: careate seprate function for this.
-      // Object.keys(val).forEach(obKey => {
-      //   val[obKey] = this.encryptionExcludeKeys.includes(obKey) ? val[obKey] : this.encryption.encrypt(val[obKey])
-      //   console.log(val);
-      // });
-
-      Object.keys(val).forEach(obKey => val[obKey] = this.encryptionExcludeKeys.includes(obKey) ? val[obKey] : this.encryption.encrypt(val[obKey]));
-
-      
-      if(this.data[key]){ //if key already exists in the database
-        this.data[key].push(val)
-      }
-      else{
-        this.data[key] = [val];
-      }
-
-      fs.writeFileSync(this.path, JSON.stringify(this.data));
-
-    }
-  }
-
-  //this will add key, val pair to the given dictionary.
-  addToObject(objKey, key, val){
-    //check if object exists
-    if (this.data[objKey]){
-      this.data[objKey][key] = this.encryptionExcludeKeys.includes(key) ? val : this.encryption.encrypt(val);
-    }
-    else{
-      this.data[objKey] = {[key] : this.encryptionExcludeKeys.includes(key) ? val : this.encryption.encrypt(val)};
+            return value
+        }
+        else if(typeof value == "object" && value !== null){
+            //check all the keys and decrypt the values
+            this.decryptObject(value);
+            return value
+        }
+        else{
+            return this.encryptedKeys.includes(key) ? this.encryption.decrypt(value) : value; 
+        }
     }
 
-    fs.writeFileSync(this.path, JSON.stringify(this.data));
-  }
 
-  getFromObject(objKey, key){
-    //check if object exists
-    if (this.data[objKey]){
-      return this.encryptionExcludeKeys.includes(key) ? this.data[objKey][key] : this.encryption.decrypt(this.data[objKey][key]);
-    }
-    else{
-      console.log("Object do not exists")
-    }
-  }
+    //set value of the given key(first order key), value can only be e.g. string, array, object
+    //if key already exists, it will create an array with previous value and current
+    set(key, value, overwrite=true){
 
+        value = this.encryptValue(key, value);
+
+        //if key already exists in the database, create a array and push the value.
+        if(this.data[key] && !overwrite){ 
+            if (Array.isArray(this.data[key])){
+                this.data[key].push(value)
+            }
+            else{
+                this.data[key] = [this.data[key], value]
+            }
+        }
+        else{
+            this.data[key] = value;
+        }
+
+        fs.writeFileSync(this.path, JSON.stringify(this.data));
+    }
+
+    //remove key from the data, (only works with the primary key)
+    remove(key){
+
+        delete this.data[key];
+        fs.writeFileSync(this.path, JSON.stringify(this.data));
+
+    }
+
+    //add key-value to the object of given key 
+    addEntryInObject(ObjKey, key, value){
+
+        let mainObject = this.data[ObjKey];
+
+        // if (!mainObject){ //main object is null, create 
+
+        // }
+        if((typeof mainObject == "object" && !Array.isArray(mainObject)) || (!mainObject)){
+            
+            value = this.encryptValue(key, value);
+            this.data[ObjKey] = {...mainObject, [key] : value};
+
+        }   
+        else{
+            throw `can only add entry to the object, typeof ${ObjKey} is ${typeof mainObject}`; //TODO: need to update it for array
+        }
+
+        fs.writeFileSync(this.path, JSON.stringify(this.data));
+    }
+
+
+    //encrypt given value
+    encryptValue(key, value){
+
+        if(typeof value == "object" && Array.isArray(value)){
+            // TODO: add support for list of list if needed
+            value.map((val)=>{
+                return typeof val == "object" ? this.encryptObject(val) : val;
+            })
+        }
+        else if(typeof value == "object" && value !== null){
+            //check all the keys and decrypt the values
+            this.encryptObject(value);
+        }
+        else{
+            value = this.encryptedKeys.includes(key) ? this.encryption.encrypt(value) : value; 
+        }
+
+        return value
+    }
+
+    //decrypt value of specified keys in object
+    decryptObject(obj){
+        Object.keys(obj).forEach(obKey => obj[obKey] = this.encryptedKeys.includes(obKey) ? this.encryption.decrypt(obj[obKey]) : obj[obKey]);
+    }
+    
+    //encrypt the value of specified keys in object
+    encryptObject(obj){
+        Object.keys(obj).forEach(obKey => obj[obKey] = this.encryptedKeys.includes(obKey) ? this.encryption.encrypt(obj[obKey]) : obj[obKey]);
+        
+    }
 }
 
 
-function parseDataFile(filePath, defaults) {
-  // We'll try/catch it in case the file doesn't exist yet, which will be the case on the first application run.
-  // `fs.readFileSync` will return a JSON string which we then parse into a Javascript object
-  try {
-    return JSON.parse(fs.readFileSync(filePath));
-  } catch(error) {
-    // if there was some kind of error, return the passed in defaults instead.
-    return defaults;
-  }
+
+
+const parseDataFile = (filePath) => {
+    // We'll try/catch it in case the file doesn't exist yet, which will be the case on the first application run.
+    // `fs.readFileSync` will return a JSON string which we then parse into a Javascript object
+    try {
+      return JSON.parse(fs.readFileSync(filePath));
+    } catch(error) {
+      throw error
+    }
 }
 
-
-
+  
+  
 module.exports = LocalStore;

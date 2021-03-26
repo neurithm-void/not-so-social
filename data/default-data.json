@@ -1,0 +1,29 @@
+{
+    "access_token": "",
+    "login_status": "",
+    "login_details": {
+        "name": "",
+        "email": "",
+        "user_id": "",
+        "last_login": ""
+    },
+    "user_preferences": {
+        "profile_photo_url": ""
+    },
+    "fb_page_to_ig_mapping": {
+    },
+    "ig_bussiness_account": [
+        {
+            "name": "",
+            "username": "",
+            "followers_count": 0,
+            "follows_count": 0,
+            "biography": "",
+            "id": "",
+            "fb_page_node_id": 0,
+            "ig_page_node_id": 0
+        }
+    ],
+    "connected_fb_pages": [
+    ]
+}
