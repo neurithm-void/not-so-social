@@ -72,11 +72,11 @@ const updateFacebookDetails = async(access_token, datastore)=>{
     let response = await FB.api('/me', {fields: ['id', 'name', 'picture.width(800).height(800)', "accounts"]});
 
     let today = new Date();
-
+    
     //update respone to the datastore
     datastore.set("login_details", {
         name: response.name,
-        email: response.email,
+        email: response.email, //api did not return email 
         user_id: response.id,
         last_login: today.toDateString()
     })
@@ -88,10 +88,10 @@ const updateFacebookDetails = async(access_token, datastore)=>{
     //add page id 
     //add page related data to datastore
     response.accounts.data.forEach((page, idx )=> ({...page, fb_page_node_id: idx}));
+    console.log("connected pages", response.accounts.data);
 
     // let pages = Object.assign({}, response.accounts.data);  //creating a copy
     datastore.set("connected_fb_pages", response.accounts.data);
-
     //make async call to the collect instagram information.
     updateLinkedInstagramId(datastore);
 }
