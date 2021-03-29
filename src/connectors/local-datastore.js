@@ -20,6 +20,11 @@ class LocalStore{
     get(key){
 
         let value = this.data[key];
+        
+        //creating a deep copy. 
+        if(typeof value == "object"){
+            value = JSON.parse(JSON.stringify(value));
+        }
 
         if(typeof value == "object" && Array.isArray(value)){
             // TODO: add support for list of list if needed
@@ -129,6 +134,7 @@ class LocalStore{
             this.encryptObject(value);
         }
         else{
+            //check if its
             value = this.encryptedKeys.includes(key) ? this.encryption.encrypt(value) : value; 
         }
 
@@ -137,9 +143,30 @@ class LocalStore{
 
     //decrypt value of specified keys in object
     decryptObject(obj){
+        //creating a deep copy in case of dictionary. 
+        // let obj = {...oldObj}
+
         Object.keys(obj).forEach(obKey => obj[obKey] = this.encryptedKeys.includes(obKey) ? this.encryption.decrypt(obj[obKey]) : obj[obKey]);
+        
+        // console.log("äsdafasf")
+        // console.log(oldObj, obj)
     }
     
+    // encryptNestedObject(obj){
+    //     //encrypt multiple/nested objects and array. 
+
+    //     if(Array.isArray(obj)){
+    //         // TODO: add support for list of list if needed
+    //         obj.map((val)=>{
+    //             return typeof val == "object" ? this.encryptObject(val) : val;
+    //         })
+    //     }
+    //     else if(obj !== null){
+    //         //check all the keys and decrypt the values
+    //         this.encryptObject(obj);
+    //     }
+    // }
+
     //encrypt the value of specified keys in object
     encryptObject(obj){
         Object.keys(obj).forEach(obKey => obj[obKey] = this.encryptedKeys.includes(obKey) ? this.encryption.encrypt(obj[obKey]) : obj[obKey]);
