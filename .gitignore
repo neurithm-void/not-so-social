@@ -2,3 +2,4 @@ node_modules/*
 .vscode/settings.json
 .vscode/*
 data/user-data.json
+start-app.bat

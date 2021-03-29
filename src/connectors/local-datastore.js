@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const {Encryption} = require("../utils/utils")
-
+const config = require("../../config")();
 
 class LocalStore{
     
@@ -32,6 +32,7 @@ class LocalStore{
         else if(typeof value == "object" && value !== null){
             //check all the keys and decrypt the values
             this.decryptObject(value);
+
             return value
         }
         else{
@@ -68,6 +69,28 @@ class LocalStore{
         delete this.data[key];
         fs.writeFileSync(this.path, JSON.stringify(this.data));
 
+    }
+
+    removeData(){
+        this.data = {};
+        fs.writeFileSync(this.path, JSON.stringify(this.data));
+    }
+
+
+    isEmpty(){
+        /**
+         * Return true if the datastore is empty, else false. 
+         * empty dataset defination is ->
+         * 1. either of access_token or login_details are empty.
+         * here, only access_token is considered
+         */
+
+        if(!this.data["access_token"]){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     //add key-value to the object of given key 
@@ -133,7 +156,8 @@ const parseDataFile = (filePath) => {
     try {
       return JSON.parse(fs.readFileSync(filePath));
     } catch(error) {
-      throw error
+      console.log(error);
+      return JSON.parse(fs.readFileSync(config.default_data_path));
     }
 }
 

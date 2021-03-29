@@ -12,6 +12,30 @@
         <script>
 
             window.api.send("toMain", {task: "get_user_data"}); //send data back to the main process
+            
+            const logout = function(){
+                console.log("logging out");
+                window.api.send("logout"); //logout of the facebook.
+            }
+
+            const login = function(){
+                console.log("logging in");
+                window.api.send("login");
+            }
+
+            
+            window.api.receive("logout", (data)=>{
+
+                if(data){
+                    document.getElementById("main").innerHTML = `<div>You have been logged out of the app</div>
+                                                                <button onClick="login()">Login</button>`
+            
+                }
+                else{
+                    console.log("unable to log out.")
+                }
+
+            })
 
             window.api.receive("fromMain", (data) => {
 
@@ -27,6 +51,8 @@
             
             //function will set initial userdata
             const setUserData = function(data){
+
+                console.log(data);
 
                 document.getElementById("user_name").innerHTML = " Hi, " + data.user_name
                 document.getElementById("profile_picture").src =  data.profile_picture_url
@@ -63,14 +89,16 @@
             }
 
         </script>
-        <img id = "profile_picture" width="80" height="80">
+        <div id = "main">
+            <img id = "profile_picture" width="80" height="80">
 
-        <div id="user_name">
-            Hi, 
-        </div>
+            <div id="user_name">
+                Hi, 
+            </div>
+            <button onclick="logout()"> Logout </button>
+            <div id = "page-cards">
 
-        <div id = "page-cards">
-
+            </div>
         </div>
     </body>
 

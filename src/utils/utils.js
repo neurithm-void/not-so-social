@@ -13,7 +13,9 @@ class Encryption {
     decrypt = ciphertext => {
 
         const bytes = CryptoJS.AES.decrypt(ciphertext, config.hash_secret);
+        // const originalText = bytes.toString(CryptoJS.enc.Utf8);
         const originalText = bytes.toString(CryptoJS.enc.Utf8);
+
         return originalText;
 
       };
