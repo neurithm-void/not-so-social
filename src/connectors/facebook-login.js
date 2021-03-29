@@ -88,10 +88,10 @@ const updateFacebookDetails = async(access_token, datastore)=>{
     //add page id 
     //add page related data to datastore
     response.accounts.data.forEach((page, idx )=> ({...page, fb_page_node_id: idx}));
-    console.log("connected pages", response.accounts.data);
 
     // let pages = Object.assign({}, response.accounts.data);  //creating a copy
-    datastore.set("connected_fb_pages", response.accounts.data);
+    let pages = response.accounts.data;
+    datastore.set("connected_fb_pages", pages);
     //make async call to the collect instagram information.
     updateLinkedInstagramId(datastore);
 }
